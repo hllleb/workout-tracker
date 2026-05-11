@@ -1,0 +1,61 @@
+@model WorkoutTracker.ViewModels.FoodDetailsViewModel
+
+@{
+    ViewData["Title"] = "Food details";
+    var mealName = ViewData["MealName"] as string;
+}
+
+<h1>Food details</h1>
+@if (!string.IsNullOrWhiteSpace(mealName))
+{
+    <p class="text-muted">Meal: <strong>@mealName</strong></p>
+}
+
+@if (Model.Food is null)
+{
+    <p class="text-muted">Food details are not available.</p>
+    <a class="btn btn-link" asp-action="Search" asp-route-mealId="@Model.MealId">Back to search</a>
+}
+else
+{
+    <h2>@Model.Food.Name</h2>
+
+    if (Model.Food.Servings.Count > 0)
+    {
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Serving</th>
+                    <th>Metric amount</th>
+                    <th>Calories</th>
+                    <th>Protein</th>
+                    <th>Carbs</th>
+                    <th>Fat</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var serving in Model.Food.Servings)
+            {
+                <tr>
+                    <td>@serving.Description</td>
+                    <td>@(serving.MetricServingAmount?.ToString("0.##") ?? "-") @serving.MetricServingUnit</td>
+                    <td>@(serving.Calories?.ToString() ?? "-")</td>
+                    <td>@(serving.ProteinG?.ToString("0.##") ?? "-")</td>
+                    <td>@(serving.CarbsG?.ToString("0.##") ?? "-")</td>
+                    <td>@(serving.FatG?.ToString("0.##") ?? "-")</td>
+                    <td>
+                        <a asp-controller="MealItems" asp-action="CreateFromFatSecret" asp-route-mealId="@Model.MealId" asp-route-foodId="@Model.Food.FoodId" asp-route-servingId="@serving.ServingId">Use</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No servings available.</p>
+    }
+
+    <a class="btn btn-link" asp-action="Search" asp-route-mealId="@Model.MealId">Back to search</a>
+}

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
 using WorkoutTracker.Models;
+using WorkoutTracker.Services.FatSecret;
 using WorkoutTracker.ViewModels;
 
 namespace WorkoutTracker.Controllers;
@@ -15,14 +16,86 @@ namespace WorkoutTracker.Controllers;
 public class MealItemsController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IFatSecretClient _fatSecret;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MealItemsController"/> class.
     /// </summary>
     /// <param name="context">Application database context.</param>
-    public MealItemsController(ApplicationDbContext context)
+    /// <param name="fatSecret">FatSecret API client.</param>
+    public MealItemsController(ApplicationDbContext context, IFatSecretClient fatSecret)
     {
         _context = context;
+        _fatSecret = fatSecret;
+    }
+
+    /// <summary>
+    /// Displays a prefilled meal item form based on FatSecret data.
+    /// </summary>
+    /// <param name="mealId">Meal identifier.</param>
+    /// <param name="foodId">FatSecret food identifier.</param>
+    /// <param name="servingId">FatSecret serving identifier.</param>
+    /// <returns>The create view with prefilled data.</returns>
+    public async Task<IActionResult> CreateFromFatSecret(int? mealId, string? foodId, string? servingId)
+    {
+        if (mealId is null || string.IsNullOrWhiteSpace(foodId))
+        {
+            return NotFound();
+        }
+
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Challenge();
+        }
+
+        var meal = await GetMealAsync(mealId.Value, userId);
+        if (meal is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["MealName"] = meal.Name;
+
+        FatSecretFoodDetails? food;
+        try
+        {
+            food = await _fatSecret.GetFoodAsync(foodId, HttpContext.RequestAborted);
+        }
+        catch
+        {
+            var errorModel = new MealItemEditViewModel { MealId = meal.Id };
+            return View("FatSecretError", errorModel);
+        }
+
+        if (food is null)
+        {
+            var notFoundModel = new MealItemEditViewModel { MealId = meal.Id };
+            return View("CreateFromFatSecretNotFound", notFoundModel);
+        }
+
+        var serving = food.Servings.FirstOrDefault(s => s.ServingId == servingId)
+            ?? food.Servings.FirstOrDefault();
+
+        if (serving is null)
+        {
+            var notFoundModel = new MealItemEditViewModel { MealId = meal.Id };
+            return View("CreateFromFatSecretNotFound", notFoundModel);
+        }
+
+        var model = new MealItemEditViewModel
+        {
+            MealId = meal.Id,
+            Name = food.Name,
+            Quantity = serving.MetricServingAmount ?? 1,
+            Unit = serving.MetricServingUnit ?? serving.Description,
+            Calories = serving.Calories ?? 0,
+            ProteinG = serving.ProteinG,
+            CarbsG = serving.CarbsG,
+            FatG = serving.FatG
+        };
+
+        return View("Create", model);
     }
 
     /// <summary>

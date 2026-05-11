@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Caching.Memory;
@@ -150,6 +151,9 @@ public sealed class FatSecretClient : IFatSecretClient
                 ["scope"] = _options.Scope
             })
         };
+
+        var credentials = Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(credentials));
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();

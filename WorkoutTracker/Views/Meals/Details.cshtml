@@ -21,6 +21,7 @@
     <h2>Items</h2>
     <p>
         <a class="btn btn-sm btn-primary" asp-controller="MealItems" asp-action="Create" asp-route-mealId="@Model.Id">Add item</a>
+        <a class="btn btn-sm btn-outline-secondary" asp-controller="Foods" asp-action="Search" asp-route-mealId="@Model.Id">Search FatSecret</a>
     </p>
 
     @if (Model.Items.Count > 0)

@@ -1,0 +1,55 @@
+@model WorkoutTracker.ViewModels.FoodSearchViewModel
+
+@{
+    ViewData["Title"] = "FatSecret search";
+    var mealName = ViewData["MealName"] as string;
+}
+
+<h1>FatSecret search</h1>
+@if (!string.IsNullOrWhiteSpace(mealName))
+{
+    <p class="text-muted">Meal: <strong>@mealName</strong></p>
+}
+
+<form method="get" class="row g-3">
+    <input type="hidden" name="mealId" value="@Model.MealId" />
+    <div class="col-md-8">
+        <input class="form-control" type="text" name="query" value="@Model.Query" placeholder="Search foods" />
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a class="btn btn-link" asp-controller="Meals" asp-action="Details" asp-route-id="@Model.MealId">Back</a>
+    </div>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(Model.Query))
+{
+    if (Model.Results.Count > 0)
+    {
+        <table class="table table-striped mt-4">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Results)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>
+                        <a asp-action="Details" asp-route-mealId="@Model.MealId" asp-route-foodId="@item.FoodId">View</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted mt-4">No results found.</p>
+    }
+}
