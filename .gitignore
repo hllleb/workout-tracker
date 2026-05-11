@@ -1,0 +1,51 @@
+## Build results
+bin/
+obj/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio Code
+.vscode/
+
+## Rider
+.idea/
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## NuGet
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# However, ignore NuGet packages used for testing, since the unit tests
+# might require a specific build configuration
+!**/packages/build/
+!**/packages/repositories.config
+
+## Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+
+## DotCover
+*.dotCover
+
+## User secrets
+secrets.json
+
+## EF Core
+*.db
+*.db-shm
+*.db-wal
+
+## Logs
+*.log
+
+## Others
+*.cache
+*.tmp
