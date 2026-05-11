@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
 using WorkoutTracker.Models;
+using WorkoutTracker.Services.FatSecret;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddMemoryCache();
+builder.Services.Configure<FatSecretOptions>(builder.Configuration.GetSection(FatSecretOptions.SectionName));
+builder.Services.AddHttpClient<IFatSecretClient, FatSecretClient>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

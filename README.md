@@ -24,9 +24,17 @@ An ASP.NET Core MVC application for tracking workouts and meals. The MVP focuses
 Update the default connection string if needed:
 - `ConnectionStrings:DefaultConnection`
 
-FatSecret API (planned):
-- `FATSECRET_CLIENT_ID`
-- `FATSECRET_CLIENT_SECRET`
+FatSecret API (OAuth 2.0):
+- `FatSecret:ClientId`
+- `FatSecret:ClientSecret`
+- `FatSecret:Scope` (optional, default: `basic`)
+
+You can set secrets with user-secrets:
+
+```bash
+dotnet user-secrets set "FatSecret:ClientId" "<client-id>" --project WorkoutTracker
+dotnet user-secrets set "FatSecret:ClientSecret" "<client-secret>" --project WorkoutTracker
+```
 
 ## Local Development
 1. Ensure SQL Server LocalDB or SQL Server is installed.
@@ -51,7 +59,7 @@ dotnet run --project WorkoutTracker
 
 ## Notes
 - XML documentation file generation is enabled.
-- Docker, tests, and API integration are planned next steps.
+- Docker and tests are planned next steps.
 
 ## Requirements Coverage (Checklist)
 - C# + ASP.NET UI: covered by MVC + Razor Pages (Identity UI).
