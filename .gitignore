@@ -49,3 +49,7 @@ secrets.json
 ## Others
 *.cache
 *.tmp
+
+## Project notes
+chat-snapshots.md
+plan-workoutTracker.prompt.md
