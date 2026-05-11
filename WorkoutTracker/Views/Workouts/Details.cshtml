@@ -14,9 +14,50 @@
         <dd class="col-sm-10">@Model.WorkoutDate.ToString("yyyy-MM-dd")</dd>
         <dt class="col-sm-2">Notes</dt>
         <dd class="col-sm-10">@Model.Notes</dd>
-        <dt class="col-sm-2">Exercises</dt>
-        <dd class="col-sm-10">@Model.ExerciseEntries.Count</dd>
     </dl>
+</div>
+
+<div class="mt-4">
+    <h2>Exercises</h2>
+    <p>
+        <a class="btn btn-sm btn-primary" asp-controller="ExerciseEntries" asp-action="Create" asp-route-workoutId="@Model.Id">Add exercise</a>
+    </p>
+
+    @if (Model.ExerciseEntries.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Sets</th>
+                    <th>Reps</th>
+                    <th>Weight</th>
+                    <th>Notes</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var entry in Model.ExerciseEntries)
+            {
+                <tr>
+                    <td>@entry.Name</td>
+                    <td>@entry.Sets</td>
+                    <td>@entry.Reps</td>
+                    <td>@(entry.WeightKg.HasValue ? $"{entry.WeightKg:0.##} kg" : "-")</td>
+                    <td>@entry.Notes</td>
+                    <td>
+                        <a asp-controller="ExerciseEntries" asp-action="Edit" asp-route-id="@entry.Id">Edit</a> |
+                        <a asp-controller="ExerciseEntries" asp-action="Delete" asp-route-id="@entry.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No exercises added yet.</p>
+    }
 </div>
 
 <div>

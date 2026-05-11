@@ -1,0 +1,64 @@
+@model WorkoutTracker.ViewModels.MealItemEditViewModel
+
+@{
+    ViewData["Title"] = "Edit meal item";
+    var mealName = ViewData["MealName"] as string;
+}
+
+<h1>Edit meal item</h1>
+@if (!string.IsNullOrWhiteSpace(mealName))
+{
+    <p class="text-muted">Meal: <strong>@mealName</strong></p>
+}
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="MealId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Quantity" class="form-label"></label>
+                <input asp-for="Quantity" class="form-control" type="number" step="0.01" min="0" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Unit" class="form-label"></label>
+                <input asp-for="Unit" class="form-control" />
+                <span asp-validation-for="Unit" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Calories" class="form-label"></label>
+                <input asp-for="Calories" class="form-control" type="number" min="0" />
+                <span asp-validation-for="Calories" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ProteinG" class="form-label"></label>
+                <input asp-for="ProteinG" class="form-control" type="number" step="0.01" min="0" />
+                <span asp-validation-for="ProteinG" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CarbsG" class="form-label"></label>
+                <input asp-for="CarbsG" class="form-control" type="number" step="0.01" min="0" />
+                <span asp-validation-for="CarbsG" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FatG" class="form-label"></label>
+                <input asp-for="FatG" class="form-control" type="number" step="0.01" min="0" />
+                <span asp-validation-for="FatG" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a class="btn btn-link" asp-controller="Meals" asp-action="Details" asp-route-id="@Model.MealId">Back</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

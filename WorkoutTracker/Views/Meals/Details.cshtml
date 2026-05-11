@@ -14,9 +14,52 @@
         <dd class="col-sm-10">@Model.ConsumedAt.ToString("yyyy-MM-dd HH:mm")</dd>
         <dt class="col-sm-2">Notes</dt>
         <dd class="col-sm-10">@Model.Notes</dd>
-        <dt class="col-sm-2">Items</dt>
-        <dd class="col-sm-10">@Model.Items.Count</dd>
     </dl>
+</div>
+
+<div class="mt-4">
+    <h2>Items</h2>
+    <p>
+        <a class="btn btn-sm btn-primary" asp-controller="MealItems" asp-action="Create" asp-route-mealId="@Model.Id">Add item</a>
+    </p>
+
+    @if (Model.Items.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Calories</th>
+                    <th>Protein</th>
+                    <th>Carbs</th>
+                    <th>Fat</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Quantity @item.Unit</td>
+                    <td>@item.Calories</td>
+                    <td>@(item.ProteinG?.ToString("0.##") ?? "-")</td>
+                    <td>@(item.CarbsG?.ToString("0.##") ?? "-")</td>
+                    <td>@(item.FatG?.ToString("0.##") ?? "-")</td>
+                    <td>
+                        <a asp-controller="MealItems" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                        <a asp-controller="MealItems" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No items added yet.</p>
+    }
 </div>
 
 <div>
