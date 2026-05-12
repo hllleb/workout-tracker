@@ -83,9 +83,12 @@ public class MealItemsController : Controller
             return View("CreateFromFatSecretNotFound", notFoundModel);
         }
 
+        var product = await GetOrCreateProductAsync(food, serving, HttpContext.RequestAborted);
+
         var model = new MealItemEditViewModel
         {
             MealId = meal.Id,
+            ProductId = product.Id,
             Name = food.Name,
             Quantity = serving.MetricServingAmount ?? 1,
             Unit = serving.MetricServingUnit ?? serving.Description,
@@ -163,6 +166,7 @@ public class MealItemsController : Controller
         var item = new MealItem
         {
             MealId = meal.Id,
+            ProductId = model.ProductId,
             Name = model.Name,
             Quantity = model.Quantity,
             Unit = model.Unit,
@@ -211,6 +215,7 @@ public class MealItemsController : Controller
         {
             Id = item.Id,
             MealId = item.MealId,
+            ProductId = item.ProductId,
             Name = item.Name,
             Quantity = item.Quantity,
             Unit = item.Unit,
@@ -259,6 +264,7 @@ public class MealItemsController : Controller
             return View(model);
         }
 
+        item.ProductId = model.ProductId;
         item.Name = model.Name;
         item.Quantity = model.Quantity;
         item.Unit = model.Unit;
@@ -346,5 +352,53 @@ public class MealItemsController : Controller
         return _context.Meals
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == mealId && m.UserId == userId);
+    }
+
+    private async Task<Product> GetOrCreateProductAsync(
+        FatSecretFoodDetails food,
+        FatSecretServing serving,
+        CancellationToken cancellationToken)
+    {
+        var externalId = BuildExternalId(food.FoodId, serving.ServingId);
+        var product = await _context.Products
+            .FirstOrDefaultAsync(p => p.ExternalId == externalId && p.Source == "FatSecret", cancellationToken);
+
+        if (product is null)
+        {
+            product = new Product
+            {
+                ExternalId = externalId,
+                Source = "FatSecret",
+                Name = food.Name,
+                ServingSize = serving.MetricServingAmount,
+                ServingUnit = serving.MetricServingUnit ?? serving.Description,
+                Calories = serving.Calories ?? 0,
+                ProteinG = serving.ProteinG,
+                CarbsG = serving.CarbsG,
+                FatG = serving.FatG,
+                CachedAt = DateTime.UtcNow
+            };
+
+            _context.Products.Add(product);
+        }
+        else
+        {
+            product.Name = food.Name;
+            product.ServingSize = serving.MetricServingAmount ?? product.ServingSize;
+            product.ServingUnit = serving.MetricServingUnit ?? serving.Description ?? product.ServingUnit;
+            product.Calories = serving.Calories ?? product.Calories;
+            product.ProteinG = serving.ProteinG ?? product.ProteinG;
+            product.CarbsG = serving.CarbsG ?? product.CarbsG;
+            product.FatG = serving.FatG ?? product.FatG;
+            product.CachedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return product;
+    }
+
+    private static string BuildExternalId(string foodId, string? servingId)
+    {
+        return string.IsNullOrWhiteSpace(servingId) ? foodId : $"{foodId}:{servingId}";
     }
 }

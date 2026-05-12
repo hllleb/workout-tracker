@@ -16,6 +16,7 @@
     <div class="col-md-6">
         <form asp-action="Create" method="post">
             <input type="hidden" asp-for="MealId" />
+            <input type="hidden" asp-for="ProductId" />
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="mb-3">
                 <label asp-for="Name" class="form-label"></label>

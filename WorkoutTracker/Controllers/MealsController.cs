@@ -38,11 +38,31 @@ public class MealsController : Controller
         }
 
         var meals = await _context.Meals
+            .Include(m => m.Items)
             .Where(m => m.UserId == userId)
             .OrderByDescending(m => m.ConsumedAt)
             .ToListAsync();
 
-        return View(meals);
+        var dailyTotals = meals
+            .GroupBy(m => m.ConsumedAt.Date)
+            .Select(group => new DailyNutritionSummaryViewModel
+            {
+                Date = group.Key,
+                Calories = group.Sum(m => m.Items.Sum(i => i.Calories)),
+                ProteinG = group.Sum(m => m.Items.Sum(i => i.ProteinG ?? 0m)),
+                CarbsG = group.Sum(m => m.Items.Sum(i => i.CarbsG ?? 0m)),
+                FatG = group.Sum(m => m.Items.Sum(i => i.FatG ?? 0m))
+            })
+            .OrderByDescending(summary => summary.Date)
+            .ToList();
+
+        var model = new MealsIndexViewModel
+        {
+            Meals = meals,
+            DailyTotals = dailyTotals
+        };
+
+        return View(model);
     }
 
     /// <summary>

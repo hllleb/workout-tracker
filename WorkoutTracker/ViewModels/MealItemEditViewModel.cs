@@ -13,6 +13,11 @@ public class MealItemEditViewModel
     public int Id { get; set; }
 
     /// <summary>
+    /// Gets or sets the linked product identifier, if any.
+    /// </summary>
+    public int? ProductId { get; set; }
+
+    /// <summary>
     /// Gets or sets the meal identifier.
     /// </summary>
     [Required]
