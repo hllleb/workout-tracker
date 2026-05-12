@@ -36,6 +36,16 @@ dotnet user-secrets set "FatSecret:ClientId" "<client-id>" --project WorkoutTrac
 dotnet user-secrets set "FatSecret:ClientSecret" "<client-secret>" --project WorkoutTracker
 ```
 
+Optional admin seed (roles are always created):
+- `SeedAdmin:Email`
+- `SeedAdmin:Password`
+- `SeedAdmin:UserName` (optional)
+
+```bash
+dotnet user-secrets set "SeedAdmin:Email" "admin@example.com" --project WorkoutTracker
+dotnet user-secrets set "SeedAdmin:Password" "<strong-password>" --project WorkoutTracker
+```
+
 ## Local Development
 1. Ensure SQL Server LocalDB or SQL Server is installed.
 2. Update the connection string in `appsettings.json` if needed.

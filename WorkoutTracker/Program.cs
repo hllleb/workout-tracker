@@ -46,4 +46,11 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("IdentitySeeder");
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider, app.Configuration, logger);
+}
+
 app.Run();
