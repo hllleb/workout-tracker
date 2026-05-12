@@ -48,6 +48,9 @@ app.MapRazorPages();
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
         .CreateLogger("IdentitySeeder");
     await IdentitySeeder.SeedAsync(scope.ServiceProvider, app.Configuration, logger);

@@ -49,6 +49,8 @@ secrets.json
 ## Others
 *.cache
 *.tmp
+*.env
+.env
 
 ## Project notes
 chat-snapshots.md

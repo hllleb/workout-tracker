@@ -12,8 +12,8 @@ An ASP.NET Core MVC application for tracking workouts and meals. The MVP focuses
 - .NET 8 LTS
 - ASP.NET Core MVC + Razor Pages (Identity UI)
 - Entity Framework Core + SQL Server
-- Docker (planned)
-- xUnit/NUnit tests (planned)
+- Docker
+- xUnit
 
 ## Architecture (Simple MVC)
 - Controllers and Razor views for UI.
@@ -67,20 +67,32 @@ dotnet ef database update
 dotnet run --project WorkoutTracker
 ```
 
+## Docker (Local)
+1. Copy `.env.example` to `.env` and set your values.
+2. Build and run containers:
+
+```bash
+docker compose up --build
+```
+
+3. Open the app at `http://localhost:8080`.
+
+The app applies EF Core migrations on startup.
+
 ## Notes
 - XML documentation file generation is enabled.
-- Docker and tests are planned next steps.
+- Docker and unit tests are set up.
 
 ## Requirements Coverage (Checklist)
 - C# + ASP.NET UI: covered by MVC + Razor Pages (Identity UI).
 - Persistence + EF Core ORM: SQL Server via EF Core.
-- Read/write data + collections usage: CRUD + filtering/search (planned).
-- Manual input: forms in MVC views (planned).
+- Read/write data + collections usage: CRUD + filtering/search (in progress).
+- Manual input: forms in MVC views.
 - Data visualization: tables/lists in MVP; charts planned after MVP.
-- Auth + roles: Identity with User/Admin (planned).
-- External API + JSON: FatSecret integration (planned).
-- Validation + exception handling: DataAnnotations + service-level validation (planned).
+- Auth + roles: Identity with User/Admin.
+- External API + JSON: FatSecret integration.
+- Validation + exception handling: DataAnnotations + service-level validation.
 - Documentation: XML docs enabled; DocFX planned.
-- Containerization: Docker planned.
-- Tests: unit tests planned (xUnit/NUnit).
+- Containerization: Docker.
+- Tests: unit tests in xUnit.
 - Cloud: optional deployment to Azure planned.
