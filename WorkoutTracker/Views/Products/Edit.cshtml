@@ -1,0 +1,72 @@
+@model WorkoutTracker.ViewModels.ProductEditViewModel
+
+@{
+    ViewData["Title"] = "Edit product";
+}
+
+<h1>Edit product</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="ExternalId" class="form-label"></label>
+                <input asp-for="ExternalId" class="form-control" readonly />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Source" class="form-label"></label>
+                <input asp-for="Source" class="form-control" readonly />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ServingSize" class="form-label"></label>
+                <input asp-for="ServingSize" class="form-control" />
+                <span asp-validation-for="ServingSize" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ServingUnit" class="form-label"></label>
+                <input asp-for="ServingUnit" class="form-control" />
+                <span asp-validation-for="ServingUnit" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Calories" class="form-label"></label>
+                <input asp-for="Calories" class="form-control" />
+                <span asp-validation-for="Calories" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ProteinG" class="form-label"></label>
+                <input asp-for="ProteinG" class="form-control" />
+                <span asp-validation-for="ProteinG" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CarbsG" class="form-label"></label>
+                <input asp-for="CarbsG" class="form-control" />
+                <span asp-validation-for="CarbsG" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="FatG" class="form-label"></label>
+                <input asp-for="FatG" class="form-control" />
+                <span asp-validation-for="FatG" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="CachedAt" class="form-label"></label>
+                <input asp-for="CachedAt" class="form-control" readonly />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a class="btn btn-link" asp-action="Index">Back to list</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

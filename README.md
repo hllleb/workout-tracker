@@ -89,7 +89,7 @@ The app applies EF Core migrations on startup.
 - Read/write data + collections usage: CRUD + filtering/search on workouts and meals.
 - Manual input: forms in MVC views.
 - Data visualization: tables/lists plus daily nutrition charts on Meals.
-- Auth + roles: Identity with User/Admin.
+- Auth + roles: Identity with User/Admin; admin product management panel.
 - External API + JSON: FatSecret integration.
 - Validation + exception handling: DataAnnotations + service-level validation.
 - Documentation: XML docs enabled; DocFX planned.

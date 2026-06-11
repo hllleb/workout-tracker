@@ -1,0 +1,70 @@
+@model WorkoutTracker.ViewModels.ProductsIndexViewModel
+
+@{
+    ViewData["Title"] = "Products";
+}
+
+<h1>Products</h1>
+<p class="text-muted">Admin panel for cached nutrition products.</p>
+
+<form method="get" class="row g-3 mb-4">
+    <div class="col-md-5">
+        <label class="form-label" for="search">Search by name</label>
+        <input type="text" class="form-control" id="search" name="search" value="@Model.Search" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="source">Source</label>
+        <select class="form-select" id="source" name="source">
+            <option value="" selected="@(string.IsNullOrEmpty(Model.Source) ? "selected" : null)">All sources</option>
+            @foreach (var availableSource in Model.AvailableSources)
+            {
+                <option value="@availableSource" selected="@(Model.Source == availableSource ? "selected" : null)">
+                    @availableSource
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-secondary">Filter</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+    </div>
+</form>
+
+@if (Model.Products.Count == 0)
+{
+    <p class="text-muted">No products found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Source</th>
+                <th>External ID</th>
+                <th>Calories</th>
+                <th>Cached at</th>
+                <th>Meal items</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Products)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Source</td>
+                <td>@item.ExternalId</td>
+                <td>@item.Calories</td>
+                <td>@item.CachedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>@item.MealItemCount</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

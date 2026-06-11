@@ -1,0 +1,34 @@
+@model WorkoutTracker.Models.Product
+
+@{
+    ViewData["Title"] = "Delete product";
+}
+
+<h1>Delete product</h1>
+
+<h3>Are you sure you want to delete this product?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+        <dt class="col-sm-3">Source</dt>
+        <dd class="col-sm-9">@Model.Source</dd>
+        <dt class="col-sm-3">External ID</dt>
+        <dd class="col-sm-9">@Model.ExternalId</dd>
+        <dt class="col-sm-3">Linked meal items</dt>
+        <dd class="col-sm-9">@Model.MealItems.Count</dd>
+    </dl>
+
+    @if (Model.MealItems.Count > 0)
+    {
+        <p class="text-warning">
+            Deleting this product will unlink @Model.MealItems.Count meal item(s). Their nutrition values will remain unchanged.
+        </p>
+    }
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a class="btn btn-link" asp-action="Index">Back to list</a>
+    </form>
+</div>
