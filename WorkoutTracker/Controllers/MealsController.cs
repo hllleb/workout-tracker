@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
 using WorkoutTracker.Models;
+using WorkoutTracker.Services.Meals;
+using WorkoutTracker.Services.Nutrition;
 using WorkoutTracker.ViewModels;
 
 namespace WorkoutTracker.Controllers;
@@ -15,14 +17,23 @@ namespace WorkoutTracker.Controllers;
 public class MealsController : Controller
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMealService _mealService;
+    private readonly INutritionSummaryService _nutritionSummaryService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MealsController"/> class.
     /// </summary>
     /// <param name="context">Application database context.</param>
-    public MealsController(ApplicationDbContext context)
+    /// <param name="mealService">Meal query service.</param>
+    /// <param name="nutritionSummaryService">Nutrition summary service.</param>
+    public MealsController(
+        ApplicationDbContext context,
+        IMealService mealService,
+        INutritionSummaryService nutritionSummaryService)
     {
         _context = context;
+        _mealService = mealService;
+        _nutritionSummaryService = nutritionSummaryService;
     }
 
     /// <summary>
@@ -40,42 +51,14 @@ public class MealsController : Controller
             return Challenge();
         }
 
-        var query = _context.Meals
-            .Include(m => m.Items)
-            .Where(m => m.UserId == userId);
+        var meals = await _mealService.GetUserMealsAsync(
+            userId,
+            search,
+            fromDate,
+            toDate,
+            HttpContext.RequestAborted);
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(m => m.Name.Contains(search));
-        }
-
-        if (fromDate is not null)
-        {
-            query = query.Where(m => m.ConsumedAt >= fromDate.Value.Date);
-        }
-
-        if (toDate is not null)
-        {
-            var endOfDay = toDate.Value.Date.AddDays(1).AddTicks(-1);
-            query = query.Where(m => m.ConsumedAt <= endOfDay);
-        }
-
-        var meals = await query
-            .OrderByDescending(m => m.ConsumedAt)
-            .ToListAsync();
-
-        var dailyTotals = meals
-            .GroupBy(m => m.ConsumedAt.Date)
-            .Select(group => new DailyNutritionSummaryViewModel
-            {
-                Date = group.Key,
-                Calories = group.Sum(m => m.Items.Sum(i => i.Calories)),
-                ProteinG = group.Sum(m => m.Items.Sum(i => i.ProteinG ?? 0m)),
-                CarbsG = group.Sum(m => m.Items.Sum(i => i.CarbsG ?? 0m)),
-                FatG = group.Sum(m => m.Items.Sum(i => i.FatG ?? 0m))
-            })
-            .OrderByDescending(summary => summary.Date)
-            .ToList();
+        var dailyTotals = _nutritionSummaryService.CalculateDailyTotals(meals);
 
         var model = new MealsIndexViewModel
         {
@@ -107,9 +90,11 @@ public class MealsController : Controller
             return Challenge();
         }
 
-        var meal = await _context.Meals
-            .Include(m => m.Items)
-            .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
+        var meal = await _mealService.GetUserMealAsync(
+            userId,
+            id.Value,
+            includeItems: true,
+            HttpContext.RequestAborted);
 
         if (meal is null)
         {

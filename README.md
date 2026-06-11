@@ -17,7 +17,7 @@ An ASP.NET Core MVC application for tracking workouts and meals. The MVP focuses
 
 ## Architecture (Simple MVC)
 - Controllers and Razor views for UI.
-- Service layer for domain logic (planned).
+- Service layer for domain logic (meals, nutrition summaries, product cache).
 - EF Core `ApplicationDbContext` for persistence.
 
 ## Configuration
@@ -91,7 +91,7 @@ The app applies EF Core migrations on startup.
 - Data visualization: tables/lists plus daily nutrition charts on Meals.
 - Auth + roles: Identity with User/Admin; admin product management panel.
 - External API + JSON: FatSecret integration.
-- Validation + exception handling: DataAnnotations + service-level validation.
+- Validation + exception handling: DataAnnotations + domain services.
 - Documentation: XML docs enabled; DocFX planned.
 - Containerization: Docker.
 - Tests: unit tests in xUnit.

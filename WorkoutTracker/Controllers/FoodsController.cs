@@ -1,9 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WorkoutTracker.Data;
 using WorkoutTracker.Services.FatSecret;
+using WorkoutTracker.Services.Meals;
 using WorkoutTracker.ViewModels;
 
 namespace WorkoutTracker.Controllers;
@@ -14,18 +13,18 @@ namespace WorkoutTracker.Controllers;
 [Authorize]
 public class FoodsController : Controller
 {
-    private readonly ApplicationDbContext _context;
     private readonly IFatSecretClient _fatSecret;
+    private readonly IMealService _mealService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FoodsController"/> class.
     /// </summary>
-    /// <param name="context">Application database context.</param>
     /// <param name="fatSecret">FatSecret API client.</param>
-    public FoodsController(ApplicationDbContext context, IFatSecretClient fatSecret)
+    /// <param name="mealService">Meal query service.</param>
+    public FoodsController(IFatSecretClient fatSecret, IMealService mealService)
     {
-        _context = context;
         _fatSecret = fatSecret;
+        _mealService = mealService;
     }
 
     /// <summary>
@@ -113,8 +112,6 @@ public class FoodsController : Controller
 
     private Task<Models.Meal?> GetMealAsync(int mealId, string userId)
     {
-        return _context.Meals
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == mealId && m.UserId == userId);
+        return _mealService.GetUserMealAsync(userId, mealId, cancellationToken: HttpContext.RequestAborted);
     }
 }

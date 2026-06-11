@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
 using WorkoutTracker.Models;
 using WorkoutTracker.Services.FatSecret;
+using WorkoutTracker.Services.Meals;
+using WorkoutTracker.Services.Nutrition;
+using WorkoutTracker.Services.Products;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,9 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 builder.Services.AddMemoryCache();
 builder.Services.Configure<FatSecretOptions>(builder.Configuration.GetSection(FatSecretOptions.SectionName));
 builder.Services.AddHttpClient<IFatSecretClient, FatSecretClient>();
+builder.Services.AddScoped<IMealService, MealService>();
+builder.Services.AddScoped<INutritionSummaryService, NutritionSummaryService>();
+builder.Services.AddScoped<IProductCacheService, ProductCacheService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

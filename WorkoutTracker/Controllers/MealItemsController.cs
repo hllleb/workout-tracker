@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
 using WorkoutTracker.Models;
 using WorkoutTracker.Services.FatSecret;
+using WorkoutTracker.Services.Meals;
+using WorkoutTracker.Services.Products;
 using WorkoutTracker.ViewModels;
 
 namespace WorkoutTracker.Controllers;
@@ -17,16 +19,26 @@ public class MealItemsController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly IFatSecretClient _fatSecret;
+    private readonly IMealService _mealService;
+    private readonly IProductCacheService _productCacheService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MealItemsController"/> class.
     /// </summary>
     /// <param name="context">Application database context.</param>
     /// <param name="fatSecret">FatSecret API client.</param>
-    public MealItemsController(ApplicationDbContext context, IFatSecretClient fatSecret)
+    /// <param name="mealService">Meal query service.</param>
+    /// <param name="productCacheService">Product cache service.</param>
+    public MealItemsController(
+        ApplicationDbContext context,
+        IFatSecretClient fatSecret,
+        IMealService mealService,
+        IProductCacheService productCacheService)
     {
         _context = context;
         _fatSecret = fatSecret;
+        _mealService = mealService;
+        _productCacheService = productCacheService;
     }
 
     /// <summary>
@@ -83,7 +95,10 @@ public class MealItemsController : Controller
             return View("CreateFromFatSecretNotFound", notFoundModel);
         }
 
-        var product = await GetOrCreateProductAsync(food, serving, HttpContext.RequestAborted);
+        var product = await _productCacheService.GetOrCreateFromFatSecretAsync(
+            food,
+            serving,
+            HttpContext.RequestAborted);
 
         var model = new MealItemEditViewModel
         {
@@ -349,56 +364,6 @@ public class MealItemsController : Controller
 
     private Task<Meal?> GetMealAsync(int mealId, string userId)
     {
-        return _context.Meals
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == mealId && m.UserId == userId);
-    }
-
-    private async Task<Product> GetOrCreateProductAsync(
-        FatSecretFoodDetails food,
-        FatSecretServing serving,
-        CancellationToken cancellationToken)
-    {
-        var externalId = BuildExternalId(food.FoodId, serving.ServingId);
-        var product = await _context.Products
-            .FirstOrDefaultAsync(p => p.ExternalId == externalId && p.Source == "FatSecret", cancellationToken);
-
-        if (product is null)
-        {
-            product = new Product
-            {
-                ExternalId = externalId,
-                Source = "FatSecret",
-                Name = food.Name,
-                ServingSize = serving.MetricServingAmount,
-                ServingUnit = serving.MetricServingUnit ?? serving.Description,
-                Calories = serving.Calories ?? 0,
-                ProteinG = serving.ProteinG,
-                CarbsG = serving.CarbsG,
-                FatG = serving.FatG,
-                CachedAt = DateTime.UtcNow
-            };
-
-            _context.Products.Add(product);
-        }
-        else
-        {
-            product.Name = food.Name;
-            product.ServingSize = serving.MetricServingAmount ?? product.ServingSize;
-            product.ServingUnit = serving.MetricServingUnit ?? serving.Description ?? product.ServingUnit;
-            product.Calories = serving.Calories ?? product.Calories;
-            product.ProteinG = serving.ProteinG ?? product.ProteinG;
-            product.CarbsG = serving.CarbsG ?? product.CarbsG;
-            product.FatG = serving.FatG ?? product.FatG;
-            product.CachedAt = DateTime.UtcNow;
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return product;
-    }
-
-    private static string BuildExternalId(string foodId, string? servingId)
-    {
-        return string.IsNullOrWhiteSpace(servingId) ? foodId : $"{foodId}:{servingId}";
+        return _mealService.GetUserMealAsync(userId, mealId, cancellationToken: HttpContext.RequestAborted);
     }
 }
