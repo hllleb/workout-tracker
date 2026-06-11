@@ -26,10 +26,13 @@ public class MealsController : Controller
     }
 
     /// <summary>
-    /// Lists meals for the current user.
+    /// Lists meals for the current user with optional filters.
     /// </summary>
+    /// <param name="search">Optional name search term.</param>
+    /// <param name="fromDate">Optional earliest consumed date.</param>
+    /// <param name="toDate">Optional latest consumed date.</param>
     /// <returns>The meals list view.</returns>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, DateTime? fromDate, DateTime? toDate)
     {
         var userId = GetUserId();
         if (string.IsNullOrEmpty(userId))
@@ -37,9 +40,27 @@ public class MealsController : Controller
             return Challenge();
         }
 
-        var meals = await _context.Meals
+        var query = _context.Meals
             .Include(m => m.Items)
-            .Where(m => m.UserId == userId)
+            .Where(m => m.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(m => m.Name.Contains(search));
+        }
+
+        if (fromDate is not null)
+        {
+            query = query.Where(m => m.ConsumedAt >= fromDate.Value.Date);
+        }
+
+        if (toDate is not null)
+        {
+            var endOfDay = toDate.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(m => m.ConsumedAt <= endOfDay);
+        }
+
+        var meals = await query
             .OrderByDescending(m => m.ConsumedAt)
             .ToListAsync();
 
@@ -58,6 +79,9 @@ public class MealsController : Controller
 
         var model = new MealsIndexViewModel
         {
+            Search = search,
+            FromDate = fromDate,
+            ToDate = toDate,
             Meals = meals,
             DailyTotals = dailyTotals
         };

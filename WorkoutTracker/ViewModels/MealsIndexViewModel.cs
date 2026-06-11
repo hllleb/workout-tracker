@@ -6,6 +6,21 @@ namespace WorkoutTracker.ViewModels;
 public class MealsIndexViewModel
 {
     /// <summary>
+    /// Gets or sets the name search term.
+    /// </summary>
+    public string? Search { get; set; }
+
+    /// <summary>
+    /// Gets or sets the earliest consumed date to include.
+    /// </summary>
+    public DateTime? FromDate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the latest consumed date to include.
+    /// </summary>
+    public DateTime? ToDate { get; set; }
+
+    /// <summary>
     /// Gets or sets the list of meals.
     /// </summary>
     public IReadOnlyList<Models.Meal> Meals { get; set; } = Array.Empty<Models.Meal>();

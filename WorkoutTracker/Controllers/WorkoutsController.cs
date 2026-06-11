@@ -26,10 +26,13 @@ public class WorkoutsController : Controller
     }
 
     /// <summary>
-    /// Lists workouts for the current user.
+    /// Lists workouts for the current user with optional filters.
     /// </summary>
+    /// <param name="search">Optional name search term.</param>
+    /// <param name="fromDate">Optional earliest workout date.</param>
+    /// <param name="toDate">Optional latest workout date.</param>
     /// <returns>The workouts list view.</returns>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? search, DateTime? fromDate, DateTime? toDate)
     {
         var userId = GetUserId();
         if (string.IsNullOrEmpty(userId))
@@ -37,12 +40,36 @@ public class WorkoutsController : Controller
             return Challenge();
         }
 
-        var workouts = await _context.Workouts
-            .Where(w => w.UserId == userId)
+        var query = _context.Workouts.Where(w => w.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(w => w.Name.Contains(search));
+        }
+
+        if (fromDate is not null)
+        {
+            query = query.Where(w => w.WorkoutDate >= fromDate.Value.Date);
+        }
+
+        if (toDate is not null)
+        {
+            query = query.Where(w => w.WorkoutDate <= toDate.Value.Date);
+        }
+
+        var workouts = await query
             .OrderByDescending(w => w.WorkoutDate)
             .ToListAsync();
 
-        return View(workouts);
+        var model = new WorkoutsIndexViewModel
+        {
+            Search = search,
+            FromDate = fromDate,
+            ToDate = toDate,
+            Workouts = workouts
+        };
+
+        return View(model);
     }
 
     /// <summary>

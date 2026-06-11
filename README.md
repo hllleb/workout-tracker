@@ -86,7 +86,7 @@ The app applies EF Core migrations on startup.
 ## Requirements Coverage (Checklist)
 - C# + ASP.NET UI: covered by MVC + Razor Pages (Identity UI).
 - Persistence + EF Core ORM: SQL Server via EF Core.
-- Read/write data + collections usage: CRUD + filtering/search (in progress).
+- Read/write data + collections usage: CRUD + filtering/search on workouts and meals.
 - Manual input: forms in MVC views.
 - Data visualization: tables/lists in MVP; charts planned after MVP.
 - Auth + roles: Identity with User/Admin.
