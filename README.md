@@ -88,7 +88,7 @@ The app applies EF Core migrations on startup.
 - Persistence + EF Core ORM: SQL Server via EF Core.
 - Read/write data + collections usage: CRUD + filtering/search on workouts and meals.
 - Manual input: forms in MVC views.
-- Data visualization: tables/lists in MVP; charts planned after MVP.
+- Data visualization: tables/lists plus daily nutrition charts on Meals.
 - Auth + roles: Identity with User/Admin.
 - External API + JSON: FatSecret integration.
 - Validation + exception handling: DataAnnotations + service-level validation.

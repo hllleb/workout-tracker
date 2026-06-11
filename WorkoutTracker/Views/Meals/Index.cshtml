@@ -1,7 +1,17 @@
 @model WorkoutTracker.ViewModels.MealsIndexViewModel
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "Meals";
+    var chartTotals = Model.DailyTotals.OrderBy(t => t.Date).ToList();
+    var chartJson = JsonSerializer.Serialize(chartTotals.Select(t => new
+    {
+        date = t.Date.ToString("yyyy-MM-dd"),
+        calories = t.Calories,
+        proteinG = t.ProteinG,
+        carbsG = t.CarbsG,
+        fatG = t.FatG
+    }));
 }
 
 <h1>Meals</h1>
@@ -34,7 +44,16 @@
 @if (Model.DailyTotals.Count > 0)
 {
     <div class="mb-4">
-        <h2>Daily totals</h2>
+        <h2>Daily nutrition</h2>
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-3">
+                <canvas id="caloriesChart" aria-label="Daily calories chart"></canvas>
+            </div>
+            <div class="col-lg-6 mb-3">
+                <canvas id="macrosChart" aria-label="Daily macros chart"></canvas>
+            </div>
+        </div>
+        <h3 class="h5">Daily totals</h3>
         <table class="table table-sm table-striped">
             <thead>
                 <tr>
@@ -95,4 +114,15 @@ else
     }
     </tbody>
 </table>
+}
+
+@section Scripts {
+    @if (Model.DailyTotals.Count > 0)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="~/js/meals-charts.js" asp-append-version="true"></script>
+        <script>
+            initMealsCharts(@Html.Raw(chartJson));
+        </script>
+    }
 }
