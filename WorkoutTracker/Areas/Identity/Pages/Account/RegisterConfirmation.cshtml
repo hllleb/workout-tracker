@@ -1,0 +1,31 @@
+﻿@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = "Check your email";
+}
+
+<div class="page-header">
+    <div>
+        <h1>@ViewData["Title"]</h1>
+        <p>We sent a confirmation link to <strong>@Model.Email</strong>.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+        <div class="auth-card text-center">
+            @if (Model.DisplayConfirmAccountLink)
+            {
+                <h2 class="auth-card-title">Email not configured</h2>
+                <p class="auth-card-subtitle">SMTP is not set up, so the confirmation link is shown here for local development only.</p>
+                <a id="confirm-link" class="btn btn-primary" href="@Model.EmailConfirmationUrl">Confirm account</a>
+            }
+            else
+            {
+                <h2 class="auth-card-title">Almost there</h2>
+                <p class="auth-card-subtitle">Open the email we sent and click <strong>Confirm email</strong>. After that you can sign in.</p>
+                <a class="btn btn-outline-secondary" asp-page="./Login">Back to sign in</a>
+            }
+        </div>
+    </div>
+</div>

@@ -30,6 +30,12 @@ services:
       FatSecret__ClientSecret: ${FATSECRET_CLIENT_SECRET}
       SeedAdmin__Email: ${SEED_ADMIN_EMAIL}
       SeedAdmin__Password: ${SEED_ADMIN_PASSWORD}
+      Email__SmtpHost: ${EMAIL_SMTP_HOST}
+      Email__SmtpPort: ${EMAIL_SMTP_PORT:-587}
+      Email__SmtpUsername: ${EMAIL_SMTP_USERNAME}
+      Email__SmtpPassword: ${EMAIL_SMTP_PASSWORD}
+      Email__FromAddress: ${EMAIL_FROM_ADDRESS}
+      Email__FromName: ${EMAIL_FROM_NAME:-WorkoutTracker}
     ports:
       - "8080:8080"
     depends_on:
