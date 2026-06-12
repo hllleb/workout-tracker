@@ -14,12 +14,12 @@
         @if (User.Identity?.IsAuthenticated == true)
         {
             <a class="btn btn-light" asp-controller="Workouts" asp-action="Index">View workouts</a>
-            <a class="btn btn-accent" asp-controller="Meals" asp-action="Index">View meals</a>
+            <a class="btn btn-light" asp-controller="Meals" asp-action="Index">View meals</a>
         }
         else
         {
             <a class="btn btn-light" asp-area="Identity" asp-page="/Account/Register">Create account</a>
-            <a class="btn btn-ghost-light" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
+            <a class="btn btn-light" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
         }
     </div>
 </section>

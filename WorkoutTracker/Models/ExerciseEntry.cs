@@ -77,6 +77,13 @@ public class ExerciseEntry
     public decimal? DistanceKm { get; set; }
 
     /// <summary>
+    /// Gets or sets average speed in km/h (cardio exercises that support pacing, e.g. running, cycling).
+    /// </summary>
+    [Precision(6, 2)]
+    [Range(0, 200)]
+    public decimal? SpeedKmh { get; set; }
+
+    /// <summary>
     /// Gets or sets estimated calories burned for this entry.
     /// </summary>
     [Range(0, 10000)]

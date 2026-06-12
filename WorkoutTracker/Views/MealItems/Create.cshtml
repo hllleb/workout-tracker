@@ -1,4 +1,5 @@
 @model WorkoutTracker.ViewModels.MealItemEditViewModel
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Add meal item";
@@ -20,89 +21,9 @@
 <div class="row justify-content-center">
     <div class="col-lg-6 col-md-8">
         <div class="panel">
-            @if (fromFatSecret)
-            {
-                <div class="mb-3 p-3" style="background:var(--app-primary-soft);border-radius:var(--app-radius-sm)">
-                    <span class="fw-semibold text-primary">FatSecret product</span>
-                    <span class="text-muted ms-2 small">Nutrition values are per serving. Adjust quantity below.</span>
-                </div>
-            }
-
-            <form asp-action="Create" method="post" id="meal-item-form">
+            <form asp-action="Create" method="post" id="meal-item-form" lang="en">
                 <input type="hidden" asp-for="MealId" />
-                <input type="hidden" asp-for="ProductId" />
-                @if (fromFatSecret)
-                {
-                    <input type="hidden" id="calories-per-unit" value="@Model.CaloriesPerUnit" />
-                    <input type="hidden" id="protein-per-unit" value="@(Model.ProteinPerUnit?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? "0")" />
-                    <input type="hidden" id="carbs-per-unit" value="@(Model.CarbsPerUnit?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? "0")" />
-                    <input type="hidden" id="fat-per-unit" value="@(Model.FatPerUnit?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? "0")" />
-                }
-
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                <div class="mb-3">
-                    <label asp-for="Name" class="form-label">Name</label>
-                    <input asp-for="Name" class="form-control" readonly="@fromFatSecret" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-sm-5">
-                        <label asp-for="Quantity" class="form-label">
-                            @(fromFatSecret ? "Number of servings" : "Quantity")
-                        </label>
-                        <input asp-for="Quantity" id="quantity-input" class="form-control" type="number" step="0.5" min="0.5"
-                               value="@Model.Quantity.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" />
-                        <span asp-validation-for="Quantity" class="text-danger"></span>
-                    </div>
-                    <div class="col-sm-7">
-                        <label asp-for="Unit" class="form-label">Unit / serving</label>
-                        @if (fromFatSecret)
-                        {
-                            <input asp-for="Unit" class="form-control" readonly />
-                        }
-                        else
-                        {
-                            <input asp-for="Unit" class="form-control" placeholder="g, ml, cup, serving…" />
-                        }
-                        <span asp-validation-for="Unit" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="panel mb-3" style="background:var(--app-surface-muted)">
-                    <h3 class="h6 text-uppercase text-muted mb-3">Nutrition @(fromFatSecret ? "(auto-calculated)" : "")</h3>
-                    <div class="row g-3">
-                        <div class="col-sm-6">
-                            <label asp-for="Calories" class="form-label">Calories (kcal)</label>
-                            <input asp-for="Calories" id="calories-input" class="form-control" type="number" min="0"
-                                   readonly="@fromFatSecret" />
-                            <span asp-validation-for="Calories" class="text-danger"></span>
-                        </div>
-                        <div class="col-sm-6">
-                            <label asp-for="ProteinG" class="form-label">Protein (g)</label>
-                            <input asp-for="ProteinG" id="protein-input" class="form-control" type="number" step="0.1" min="0"
-                                   value="@(Model.ProteinG?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty)"
-                                   readonly="@fromFatSecret" />
-                            <span asp-validation-for="ProteinG" class="text-danger"></span>
-                        </div>
-                        <div class="col-sm-6">
-                            <label asp-for="CarbsG" class="form-label">Carbs (g)</label>
-                            <input asp-for="CarbsG" id="carbs-input" class="form-control" type="number" step="0.1" min="0"
-                                   value="@(Model.CarbsG?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty)"
-                                   readonly="@fromFatSecret" />
-                            <span asp-validation-for="CarbsG" class="text-danger"></span>
-                        </div>
-                        <div class="col-sm-6">
-                            <label asp-for="FatG" class="form-label">Fat (g)</label>
-                            <input asp-for="FatG" id="fat-input" class="form-control" type="number" step="0.1" min="0"
-                                   value="@(Model.FatG?.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty)"
-                                   readonly="@fromFatSecret" />
-                            <span asp-validation-for="FatG" class="text-danger"></span>
-                        </div>
-                    </div>
-                </div>
-
+                <partial name="_MealItemFormFields" model="Model" />
                 <button type="submit" class="btn btn-primary">Add</button>
             </form>
         </div>
@@ -110,35 +31,12 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @if (!fromFatSecret)
+    {
+        <partial name="_ValidationScriptsPartial" />
+    }
     @if (fromFatSecret)
     {
-        <script>
-        (function () {
-            const qty = document.getElementById('quantity-input');
-            const calPerUnit = parseFloat(document.getElementById('calories-per-unit').value) || 0;
-            const protPerUnit = parseFloat(document.getElementById('protein-per-unit').value) || 0;
-            const carbsPerUnit = parseFloat(document.getElementById('carbs-per-unit').value) || 0;
-            const fatPerUnit = parseFloat(document.getElementById('fat-per-unit').value) || 0;
-
-            const calInput = document.getElementById('calories-input');
-            const protInput = document.getElementById('protein-input');
-            const carbInput = document.getElementById('carbs-input');
-            const fatInput = document.getElementById('fat-input');
-
-            function round2(v) { return Math.round(v * 100) / 100; }
-
-            function recalc() {
-                const q = parseFloat(qty.value) || 1;
-                calInput.value = Math.round(calPerUnit * q);
-                protInput.value = round2(protPerUnit * q);
-                carbInput.value = round2(carbsPerUnit * q);
-                fatInput.value = round2(fatPerUnit * q);
-            }
-
-            qty.addEventListener('input', recalc);
-            recalc();
-        })();
-        </script>
+        <script src="~/js/meal-item-form.js" asp-append-version="true"></script>
     }
 }

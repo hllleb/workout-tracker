@@ -1,12 +1,25 @@
 'use strict';
 
 (function () {
+    const form = document.getElementById('exercise-form');
     const typeInputs = document.querySelectorAll('input[name="ExerciseType"]');
     const strengthSection = document.getElementById('strength-fields');
     const cardioSection = document.getElementById('cardio-fields');
+    const speedSection = document.getElementById('speed-field');
     const setsInput = document.getElementById('sets-input');
     const repsContainer = document.getElementById('reps-container');
     const calPreview = document.getElementById('cal-preview');
+    const nameInput = document.querySelector('input[name="Name"]');
+    const durInput = document.querySelector('input[name="DurationMinutes"]');
+    const distInput = document.querySelector('input[name="DistanceKm"]');
+    const speedInput = document.querySelector('input[name="SpeedKmh"]');
+
+    const speedExercises = (form?.dataset.speedExercises || '')
+        .split(',')
+        .map(s => s.trim().toLowerCase())
+        .filter(Boolean);
+
+    let lastMetricField = null;
 
     function getType() {
         for (const r of typeInputs) {
@@ -15,10 +28,68 @@
         return 'Strength';
     }
 
+    function supportsSpeed() {
+        const name = (nameInput?.value || '').trim().toLowerCase();
+        return speedExercises.includes(name);
+    }
+
+    function parseNum(input) {
+        const value = parseFloat(input?.value || '');
+        return Number.isFinite(value) && value > 0 ? value : null;
+    }
+
+    function setInputValue(input, value, decimals) {
+        if (!input || value === null) return;
+        input.value = value.toFixed(decimals);
+    }
+
+    function syncSpeedMetrics(changedField) {
+        if (!supportsSpeed()) return;
+
+        const duration = parseNum(durInput);
+        const distance = parseNum(distInput);
+        const speed = parseNum(speedInput);
+        const field = changedField || lastMetricField;
+
+        if (field === 'duration' || field === 'distance') {
+            if (duration && distance) {
+                setInputValue(speedInput, distance / (duration / 60), 1);
+            }
+            return;
+        }
+
+        if (field === 'speed') {
+            if (speed && duration) {
+                setInputValue(distInput, speed * (duration / 60), 2);
+            } else if (speed && distance) {
+                setInputValue(durInput, distance / speed * 60, 1);
+            }
+            return;
+        }
+
+        if (duration && distance) {
+            setInputValue(speedInput, distance / (duration / 60), 1);
+        } else if (speed && duration) {
+            setInputValue(distInput, speed * (duration / 60), 2);
+        } else if (speed && distance) {
+            setInputValue(durInput, distance / speed * 60, 1);
+        }
+    }
+
+    function toggleSpeedField() {
+        if (!speedSection) return;
+        const show = getType() === 'Cardio' && supportsSpeed();
+        speedSection.style.display = show ? '' : 'none';
+        if (!show && speedInput) {
+            speedInput.value = '';
+        }
+    }
+
     function toggleType() {
         const isStrength = getType() === 'Strength';
         strengthSection.style.display = isStrength ? '' : 'none';
         cardioSection.style.display = isStrength ? 'none' : '';
+        toggleSpeedField();
         updateCalPreview();
     }
 
@@ -44,8 +115,8 @@
 
         const type = getType();
         if (type === 'Cardio') {
-            const dur = parseFloat(document.querySelector('input[name="DurationMinutes"]')?.value || '0');
-            const dist = parseFloat(document.querySelector('input[name="DistanceKm"]')?.value || '0');
+            const dur = parseFloat(durInput?.value || '0');
+            const dist = parseFloat(distInput?.value || '0');
             if (dur <= 0) { calPreview.textContent = '—'; return; }
             const met = dist > 0 ? 8.5 : 6.0;
             const cal = Math.round(met * 75 * dur / 60);
@@ -60,20 +131,32 @@
         }
     }
 
-    // Attach events
+    function onMetricInput(field) {
+        lastMetricField = field;
+        syncSpeedMetrics(field);
+        updateCalPreview();
+    }
+
     typeInputs.forEach(r => r.addEventListener('change', toggleType));
     setsInput?.addEventListener('input', buildRepsFields);
     repsContainer?.addEventListener('input', updateCalPreview);
+    nameInput?.addEventListener('input', () => {
+        toggleSpeedField();
+        syncSpeedMetrics();
+    });
+    nameInput?.addEventListener('change', () => {
+        toggleSpeedField();
+        syncSpeedMetrics();
+    });
 
-    const durInput = document.querySelector('input[name="DurationMinutes"]');
-    const distInput = document.querySelector('input[name="DistanceKm"]');
-    durInput?.addEventListener('input', updateCalPreview);
-    distInput?.addEventListener('input', updateCalPreview);
+    durInput?.addEventListener('input', () => onMetricInput('duration'));
+    distInput?.addEventListener('input', () => onMetricInput('distance'));
+    speedInput?.addEventListener('input', () => onMetricInput('speed'));
 
     const weightInput = document.querySelector('input[name="WeightKg"]');
     weightInput?.addEventListener('input', updateCalPreview);
 
-    // Init
     toggleType();
+    syncSpeedMetrics();
     updateCalPreview();
 })();

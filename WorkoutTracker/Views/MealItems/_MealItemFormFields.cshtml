@@ -1,0 +1,119 @@
+@model WorkoutTracker.ViewModels.MealItemEditViewModel
+@using System.Globalization
+
+@{
+    var fromFatSecret = Model.ProductId.HasValue && Model.CaloriesPerUnit.HasValue;
+    string FormatDecimal(decimal? value) =>
+        value?.ToString("0.##", CultureInfo.InvariantCulture) ?? string.Empty;
+}
+
+@if (fromFatSecret)
+{
+    <div class="mb-3 p-3" style="background:var(--app-primary-soft);border-radius:var(--app-radius-sm)">
+        <span class="fw-semibold text-primary">FatSecret product</span>
+        <span class="text-muted ms-2 small">Nutrition values are per serving. Adjust quantity below.</span>
+    </div>
+}
+
+<input type="hidden" asp-for="ProductId" />
+@if (fromFatSecret)
+{
+    <input type="hidden" id="calories-per-unit" value="@Model.CaloriesPerUnit?.ToString(CultureInfo.InvariantCulture)" />
+    <input type="hidden" id="protein-per-unit" value="@(FormatDecimal(Model.ProteinPerUnit) is "" ? "0" : FormatDecimal(Model.ProteinPerUnit))" />
+    <input type="hidden" id="carbs-per-unit" value="@(FormatDecimal(Model.CarbsPerUnit) is "" ? "0" : FormatDecimal(Model.CarbsPerUnit))" />
+    <input type="hidden" id="fat-per-unit" value="@(FormatDecimal(Model.FatPerUnit) is "" ? "0" : FormatDecimal(Model.FatPerUnit))" />
+}
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label">Name</label>
+    <input asp-for="Name" class="form-control" readonly="@fromFatSecret" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-sm-5">
+        <label asp-for="Quantity" class="form-label">
+            @(fromFatSecret ? "Number of servings" : "Quantity")
+        </label>
+        <input name="Quantity" id="quantity-input" class="form-control" type="number"
+               step="@(fromFatSecret ? "1" : "any")"
+               min="@(fromFatSecret ? "1" : "0.01")"
+               value="@Model.Quantity.ToString(fromFatSecret ? "0" : "0.##", CultureInfo.InvariantCulture)" />
+        <span asp-validation-for="Quantity" class="text-danger"></span>
+    </div>
+    <div class="col-sm-7">
+        <label asp-for="Unit" class="form-label">Unit / serving</label>
+        @if (fromFatSecret)
+        {
+            <input asp-for="Unit" class="form-control" readonly />
+        }
+        else
+        {
+            <input asp-for="Unit" class="form-control" placeholder="g, ml, cup, serving…" />
+        }
+        <span asp-validation-for="Unit" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="panel mb-3" style="background:var(--app-surface-muted)">
+    <h3 class="h6 text-uppercase text-muted mb-3">Nutrition @(fromFatSecret ? "(auto-calculated)" : "")</h3>
+    <div class="row g-3">
+        @if (fromFatSecret)
+        {
+            <input type="hidden" name="Calories" id="calories-hidden" value="@Model.Calories.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="ProteinG" id="protein-hidden" value="@FormatDecimal(Model.ProteinG)" />
+            <input type="hidden" name="CarbsG" id="carbs-hidden" value="@FormatDecimal(Model.CarbsG)" />
+            <input type="hidden" name="FatG" id="fat-hidden" value="@FormatDecimal(Model.FatG)" />
+
+            <div class="col-sm-6">
+                <label class="form-label">Calories (kcal)</label>
+                <input type="text" id="calories-display" class="form-control" readonly
+                       value="@Model.Calories.ToString(CultureInfo.InvariantCulture)" />
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label">Protein (g)</label>
+                <input type="text" id="protein-display" class="form-control" readonly
+                       value="@FormatDecimal(Model.ProteinG)" />
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label">Carbs (g)</label>
+                <input type="text" id="carbs-display" class="form-control" readonly
+                       value="@FormatDecimal(Model.CarbsG)" />
+            </div>
+            <div class="col-sm-6">
+                <label class="form-label">Fat (g)</label>
+                <input type="text" id="fat-display" class="form-control" readonly
+                       value="@FormatDecimal(Model.FatG)" />
+            </div>
+        }
+        else
+        {
+            <div class="col-sm-6">
+                <label asp-for="Calories" class="form-label">Calories (kcal)</label>
+                <input name="Calories" class="form-control" type="number" step="any" min="0"
+                       value="@Model.Calories.ToString(CultureInfo.InvariantCulture)" />
+                <span asp-validation-for="Calories" class="text-danger"></span>
+            </div>
+            <div class="col-sm-6">
+                <label asp-for="ProteinG" class="form-label">Protein (g)</label>
+                <input name="ProteinG" class="form-control" type="number" step="any" min="0"
+                       value="@FormatDecimal(Model.ProteinG)" />
+                <span asp-validation-for="ProteinG" class="text-danger"></span>
+            </div>
+            <div class="col-sm-6">
+                <label asp-for="CarbsG" class="form-label">Carbs (g)</label>
+                <input name="CarbsG" class="form-control" type="number" step="any" min="0"
+                       value="@FormatDecimal(Model.CarbsG)" />
+                <span asp-validation-for="CarbsG" class="text-danger"></span>
+            </div>
+            <div class="col-sm-6">
+                <label asp-for="FatG" class="form-label">Fat (g)</label>
+                <input name="FatG" class="form-control" type="number" step="any" min="0"
+                       value="@FormatDecimal(Model.FatG)" />
+                <span asp-validation-for="FatG" class="text-danger"></span>
+            </div>
+        }
+    </div>
+</div>

@@ -1,6 +1,8 @@
+using System.Globalization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
@@ -39,6 +41,14 @@ builder.Services.AddScoped<INutritionSummaryService, NutritionSummaryService>();
 builder.Services.AddScoped<IProductCacheService, ProductCacheService>();
 builder.Services.AddControllersWithViews();
 
+var invariantCulture = CultureInfo.GetCultureInfo("en-US");
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture(invariantCulture);
+    options.SupportedCultures = [invariantCulture];
+    options.SupportedUICultures = [invariantCulture];
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -56,6 +66,8 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseRequestLocalization();
 
 app.UseRouting();
 

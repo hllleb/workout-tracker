@@ -96,6 +96,10 @@
                             {
                                 <span class="text-muted ms-1">/ @entry.DistanceKm?.ToString("0.##") km</span>
                             }
+                            if (entry.SpeedKmh.HasValue)
+                            {
+                                <span class="text-muted ms-1">@@ @entry.SpeedKmh?.ToString("0.#") km/h</span>
+                            }
                         }
                         else
                         {

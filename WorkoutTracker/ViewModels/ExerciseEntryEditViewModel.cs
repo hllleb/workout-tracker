@@ -60,6 +60,12 @@ public class ExerciseEntryEditViewModel
     public decimal? DistanceKm { get; set; }
 
     /// <summary>
+    /// Gets or sets average speed in km/h (running, cycling, etc.).
+    /// </summary>
+    [Range(0, 200)]
+    public decimal? SpeedKmh { get; set; }
+
+    /// <summary>
     /// Gets or sets estimated calories burned (computed by controller).
     /// </summary>
     public int? CaloriesBurned { get; set; }

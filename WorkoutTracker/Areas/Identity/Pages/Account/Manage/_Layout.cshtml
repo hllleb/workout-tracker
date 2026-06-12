@@ -1,0 +1,32 @@
+@{
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout))
+    {
+        Layout = (string)parentLayout!;
+    }
+    else
+    {
+        Layout = "/Views/Shared/_Layout.cshtml";
+    }
+}
+
+<div class="page-header">
+    <div>
+        <h1>Account</h1>
+        <p>Manage your profile and security settings.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="panel manage-nav-panel">
+            <partial name="_ManageNav" />
+        </div>
+    </div>
+    <div class="col-lg-8">
+        @RenderBody()
+    </div>
+</div>
+
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+}

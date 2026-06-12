@@ -181,8 +181,11 @@ public class MealItemsController : Controller
         if (!ModelState.IsValid)
         {
             ViewData["MealName"] = meal.Name;
+            await PopulatePerUnitFromProductAsync(model);
             return View(model);
         }
+
+        await ApplyProductNutritionAsync(model);
 
         var item = new MealItem
         {
@@ -223,6 +226,7 @@ public class MealItemsController : Controller
 
         var item = await _context.MealItems
             .Include(i => i.Meal)
+            .Include(i => i.Product)
             .FirstOrDefaultAsync(i => i.Id == id && i.Meal != null && i.Meal.UserId == userId);
 
         if (item is null || item.Meal is null)
@@ -245,6 +249,8 @@ public class MealItemsController : Controller
             CarbsG = item.CarbsG,
             FatG = item.FatG
         };
+
+        PopulatePerUnitFromProduct(model, item.Product);
 
         return View(model);
     }
@@ -282,8 +288,11 @@ public class MealItemsController : Controller
         if (!ModelState.IsValid)
         {
             ViewData["MealName"] = item.Meal.Name;
+            await PopulatePerUnitFromProductAsync(model);
             return View(model);
         }
+
+        await ApplyProductNutritionAsync(model);
 
         item.ProductId = model.ProductId;
         item.Name = model.Name;
@@ -371,5 +380,64 @@ public class MealItemsController : Controller
     private Task<Meal?> GetMealAsync(int mealId, string userId)
     {
         return _mealService.GetUserMealAsync(userId, mealId, cancellationToken: HttpContext.RequestAborted);
+    }
+
+    private static void PopulatePerUnitFromProduct(MealItemEditViewModel model, Product? product)
+    {
+        if (model.ProductId is null || product is null)
+        {
+            return;
+        }
+
+        model.Name = product.Name;
+        model.CaloriesPerUnit = product.Calories;
+        model.ProteinPerUnit = product.ProteinG;
+        model.CarbsPerUnit = product.CarbsG;
+        model.FatPerUnit = product.FatG;
+    }
+
+    private async Task PopulatePerUnitFromProductAsync(MealItemEditViewModel model)
+    {
+        if (model.ProductId is null)
+        {
+            return;
+        }
+
+        var product = await _context.Products
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == model.ProductId);
+
+        PopulatePerUnitFromProduct(model, product);
+    }
+
+    private async Task ApplyProductNutritionAsync(MealItemEditViewModel model)
+    {
+        if (model.ProductId is null)
+        {
+            return;
+        }
+
+        var product = await _context.Products
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == model.ProductId);
+
+        if (product is null)
+        {
+            return;
+        }
+
+        model.Name = product.Name;
+
+        var quantity = model.Quantity;
+        model.Calories = (int)Math.Round(product.Calories * quantity, MidpointRounding.AwayFromZero);
+        model.ProteinG = product.ProteinG.HasValue
+            ? Math.Round(product.ProteinG.Value * quantity, 2, MidpointRounding.AwayFromZero)
+            : null;
+        model.CarbsG = product.CarbsG.HasValue
+            ? Math.Round(product.CarbsG.Value * quantity, 2, MidpointRounding.AwayFromZero)
+            : null;
+        model.FatG = product.FatG.HasValue
+            ? Math.Round(product.FatG.Value * quantity, 2, MidpointRounding.AwayFromZero)
+            : null;
     }
 }

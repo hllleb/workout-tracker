@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
+using WorkoutTracker.Helpers;
 using WorkoutTracker.Models;
 using WorkoutTracker.ViewModels;
 
@@ -74,6 +75,8 @@ public class ExerciseEntriesController : Controller
             return View(model);
         }
 
+        ApplyCardioMetrics(model);
+
         var (repsAvg, repsJson) = ProcessReps(model);
 
         var entry = new ExerciseEntry
@@ -87,6 +90,9 @@ public class ExerciseEntriesController : Controller
             WeightKg = model.ExerciseType == "Cardio" ? null : model.WeightKg,
             DurationMinutes = model.ExerciseType == "Cardio" ? model.DurationMinutes : null,
             DistanceKm = model.ExerciseType == "Cardio" ? model.DistanceKm : null,
+            SpeedKmh = model.ExerciseType == "Cardio" && CardioExerciseRules.SupportsSpeed(model.Name)
+                ? model.SpeedKmh
+                : null,
             CaloriesBurned = EstimateCalories(model),
             Notes = model.Notes
         };
@@ -130,6 +136,7 @@ public class ExerciseEntriesController : Controller
             WeightKg = entry.WeightKg,
             DurationMinutes = entry.DurationMinutes,
             DistanceKm = entry.DistanceKm,
+            SpeedKmh = entry.SpeedKmh,
             CaloriesBurned = entry.CaloriesBurned,
             Notes = entry.Notes
         };
@@ -164,6 +171,8 @@ public class ExerciseEntriesController : Controller
             return View(model);
         }
 
+        ApplyCardioMetrics(model);
+
         var (repsAvg, repsJson) = ProcessReps(model);
 
         entry.Name = model.Name;
@@ -174,6 +183,9 @@ public class ExerciseEntriesController : Controller
         entry.WeightKg = model.ExerciseType == "Cardio" ? null : model.WeightKg;
         entry.DurationMinutes = model.ExerciseType == "Cardio" ? model.DurationMinutes : null;
         entry.DistanceKm = model.ExerciseType == "Cardio" ? model.DistanceKm : null;
+        entry.SpeedKmh = model.ExerciseType == "Cardio" && CardioExerciseRules.SupportsSpeed(model.Name)
+            ? model.SpeedKmh
+            : null;
         entry.CaloriesBurned = EstimateCalories(model);
         entry.Notes = model.Notes;
 
@@ -271,6 +283,31 @@ public class ExerciseEntriesController : Controller
         }
 
         return Enumerable.Repeat(fallbackReps > 0 ? fallbackReps : 1, Math.Max(sets, 1)).ToList();
+    }
+
+    private static void ApplyCardioMetrics(ExerciseEntryEditViewModel model)
+    {
+        if (model.ExerciseType != "Cardio")
+        {
+            model.DurationMinutes = null;
+            model.DistanceKm = null;
+            model.SpeedKmh = null;
+            return;
+        }
+
+        if (!CardioExerciseRules.SupportsSpeed(model.Name))
+        {
+            model.SpeedKmh = null;
+            return;
+        }
+
+        var duration = model.DurationMinutes;
+        var distance = model.DistanceKm;
+        var speed = model.SpeedKmh;
+        CardioExerciseRules.NormalizeSpeedMetrics(ref duration, ref distance, ref speed);
+        model.DurationMinutes = duration;
+        model.DistanceKm = distance;
+        model.SpeedKmh = speed;
     }
 
     private static int? EstimateCalories(ExerciseEntryEditViewModel model)
