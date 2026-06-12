@@ -1,8 +1,55 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<section class="hero">
+    <div>
+        <span class="stat-pill">Train smarter · Eat better</span>
+        <h1>Your workouts and nutrition in one place.</h1>
+        <p>
+            Log training sessions, track meals, review daily macros, and optionally enrich meals with FatSecret product data.
+        </p>
+    </div>
+    <div class="hero-actions">
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="btn btn-light" asp-controller="Workouts" asp-action="Index">View workouts</a>
+            <a class="btn btn-accent" asp-controller="Meals" asp-action="Index">View meals</a>
+        }
+        else
+        {
+            <a class="btn btn-light" asp-area="Identity" asp-page="/Account/Register">Create account</a>
+            <a class="btn btn-ghost-light" asp-area="Identity" asp-page="/Account/Login">Sign in</a>
+        }
+    </div>
+</section>
+
+<div class="feature-grid">
+    <article class="feature-card">
+        <div class="feature-card-icon">W</div>
+        <h2>Workout log</h2>
+        <p>Create workouts, add exercises with sets and reps, and filter your history by date or name.</p>
+        <a class="btn btn-primary btn-sm" asp-controller="Workouts" asp-action="Index">Open workouts</a>
+    </article>
+
+    <article class="feature-card">
+        <div class="feature-card-icon">M</div>
+        <h2>Meal tracking</h2>
+        <p>Record meals manually or from FatSecret, then review daily totals and nutrition charts.</p>
+        <a class="btn btn-primary btn-sm" asp-controller="Meals" asp-action="Index">Open meals</a>
+    </article>
+
+    <article class="feature-card">
+        <div class="feature-card-icon">+</div>
+        <h2>Product cache</h2>
+        <p>Selected foods are cached locally so admins can review nutrition data used across meals.</p>
+        @if (User.IsInRole("Admin"))
+        {
+            <a class="btn btn-outline-secondary btn-sm" asp-controller="Products" asp-action="Index">Admin products</a>
+        }
+        else
+        {
+            <p class="small text-muted mb-0">Admin access required.</p>
+        }
+    </article>
 </div>
