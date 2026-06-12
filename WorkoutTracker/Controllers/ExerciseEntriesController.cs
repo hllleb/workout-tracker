@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,30 +33,21 @@ public class ExerciseEntriesController : Controller
     /// <returns>The create view.</returns>
     public async Task<IActionResult> Create(int? workoutId)
     {
-        if (workoutId is null)
-        {
-            return NotFound();
-        }
+        if (workoutId is null) return NotFound();
 
         var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
         var workout = await GetWorkoutAsync(workoutId.Value, userId);
-        if (workout is null)
-        {
-            return NotFound();
-        }
+        if (workout is null) return NotFound();
 
         ViewData["WorkoutName"] = workout.Name;
 
         var model = new ExerciseEntryEditViewModel
         {
             WorkoutId = workout.Id,
-            Sets = 1,
-            Reps = 1
+            Sets = 3,
+            RepsPerSetValues = Enumerable.Repeat(10, 3).ToList()
         };
 
         return View(model);
@@ -71,16 +63,10 @@ public class ExerciseEntriesController : Controller
     public async Task<IActionResult> Create(ExerciseEntryEditViewModel model)
     {
         var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
         var workout = await GetWorkoutAsync(model.WorkoutId, userId);
-        if (workout is null)
-        {
-            return NotFound();
-        }
+        if (workout is null) return NotFound();
 
         if (!ModelState.IsValid)
         {
@@ -88,13 +74,20 @@ public class ExerciseEntriesController : Controller
             return View(model);
         }
 
+        var (repsAvg, repsJson) = ProcessReps(model);
+
         var entry = new ExerciseEntry
         {
             WorkoutId = workout.Id,
             Name = model.Name,
-            Sets = model.Sets,
-            Reps = model.Reps,
-            WeightKg = model.WeightKg,
+            ExerciseType = model.ExerciseType,
+            Sets = model.ExerciseType == "Cardio" ? 1 : model.Sets,
+            Reps = repsAvg,
+            RepsPerSet = repsJson,
+            WeightKg = model.ExerciseType == "Cardio" ? null : model.WeightKg,
+            DurationMinutes = model.ExerciseType == "Cardio" ? model.DurationMinutes : null,
+            DistanceKm = model.ExerciseType == "Cardio" ? model.DistanceKm : null,
+            CaloriesBurned = EstimateCalories(model),
             Notes = model.Notes
         };
 
@@ -111,36 +104,33 @@ public class ExerciseEntriesController : Controller
     /// <returns>The edit view.</returns>
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id is null)
-        {
-            return NotFound();
-        }
+        if (id is null) return NotFound();
 
         var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
         var entry = await _context.ExerciseEntries
             .Include(e => e.Workout)
             .FirstOrDefaultAsync(e => e.Id == id && e.Workout != null && e.Workout.UserId == userId);
 
-        if (entry is null || entry.Workout is null)
-        {
-            return NotFound();
-        }
+        if (entry is null || entry.Workout is null) return NotFound();
 
         ViewData["WorkoutName"] = entry.Workout.Name;
+
+        var repsPerSetValues = ParseRepsPerSet(entry.RepsPerSet, entry.Sets, entry.Reps);
 
         var model = new ExerciseEntryEditViewModel
         {
             Id = entry.Id,
             WorkoutId = entry.WorkoutId,
             Name = entry.Name,
+            ExerciseType = entry.ExerciseType,
             Sets = entry.Sets,
-            Reps = entry.Reps,
+            RepsPerSetValues = repsPerSetValues,
             WeightKg = entry.WeightKg,
+            DurationMinutes = entry.DurationMinutes,
+            DistanceKm = entry.DistanceKm,
+            CaloriesBurned = entry.CaloriesBurned,
             Notes = entry.Notes
         };
 
@@ -157,25 +147,16 @@ public class ExerciseEntriesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, ExerciseEntryEditViewModel model)
     {
-        if (id != model.Id)
-        {
-            return NotFound();
-        }
+        if (id != model.Id) return NotFound();
 
         var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
         var entry = await _context.ExerciseEntries
             .Include(e => e.Workout)
             .FirstOrDefaultAsync(e => e.Id == id && e.Workout != null && e.Workout.UserId == userId);
 
-        if (entry is null || entry.Workout is null)
-        {
-            return NotFound();
-        }
+        if (entry is null || entry.Workout is null) return NotFound();
 
         if (!ModelState.IsValid)
         {
@@ -183,10 +164,17 @@ public class ExerciseEntriesController : Controller
             return View(model);
         }
 
+        var (repsAvg, repsJson) = ProcessReps(model);
+
         entry.Name = model.Name;
-        entry.Sets = model.Sets;
-        entry.Reps = model.Reps;
-        entry.WeightKg = model.WeightKg;
+        entry.ExerciseType = model.ExerciseType;
+        entry.Sets = model.ExerciseType == "Cardio" ? 1 : model.Sets;
+        entry.Reps = repsAvg;
+        entry.RepsPerSet = repsJson;
+        entry.WeightKg = model.ExerciseType == "Cardio" ? null : model.WeightKg;
+        entry.DurationMinutes = model.ExerciseType == "Cardio" ? model.DurationMinutes : null;
+        entry.DistanceKm = model.ExerciseType == "Cardio" ? model.DistanceKm : null;
+        entry.CaloriesBurned = EstimateCalories(model);
         entry.Notes = model.Notes;
 
         await _context.SaveChangesAsync();
@@ -201,26 +189,17 @@ public class ExerciseEntriesController : Controller
     /// <returns>The delete view.</returns>
     public async Task<IActionResult> Delete(int? id)
     {
-        if (id is null)
-        {
-            return NotFound();
-        }
+        if (id is null) return NotFound();
 
         var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
         var entry = await _context.ExerciseEntries
             .Include(e => e.Workout)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id && e.Workout != null && e.Workout.UserId == userId);
 
-        if (entry is null || entry.Workout is null)
-        {
-            return NotFound();
-        }
+        if (entry is null || entry.Workout is null) return NotFound();
 
         ViewData["WorkoutName"] = entry.Workout.Name;
         return View(entry);
@@ -236,37 +215,82 @@ public class ExerciseEntriesController : Controller
     public async Task<IActionResult> DeleteConfirmed(int id)
     {
         var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
-        {
-            return Challenge();
-        }
+        if (string.IsNullOrEmpty(userId)) return Challenge();
 
         var entry = await _context.ExerciseEntries
             .Include(e => e.Workout)
             .FirstOrDefaultAsync(e => e.Id == id && e.Workout != null && e.Workout.UserId == userId);
 
-        if (entry is null || entry.Workout is null)
-        {
-            return NotFound();
-        }
+        if (entry is null || entry.Workout is null) return NotFound();
 
         var workoutId = entry.WorkoutId;
-
         _context.ExerciseEntries.Remove(entry);
         await _context.SaveChangesAsync();
 
         return RedirectToAction("Details", "Workouts", new { id = workoutId });
     }
 
-    private string? GetUserId()
-    {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier);
-    }
+    // ─── helpers ────────────────────────────────────────────────────────────────
 
-    private Task<Workout?> GetWorkoutAsync(int workoutId, string userId)
-    {
-        return _context.Workouts
+    private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    private Task<Workout?> GetWorkoutAsync(int workoutId, string userId) =>
+        _context.Workouts
             .AsNoTracking()
             .FirstOrDefaultAsync(w => w.Id == workoutId && w.UserId == userId);
+
+    private static (int avg, string? json) ProcessReps(ExerciseEntryEditViewModel model)
+    {
+        if (model.ExerciseType == "Cardio")
+            return (0, null);
+
+        var values = model.RepsPerSetValues;
+        if (values is null || values.Count == 0)
+            return (1, null);
+
+        var trimmed = values.Take(model.Sets).ToList();
+        if (trimmed.Count == 0)
+            return (1, null);
+
+        var avg = (int)Math.Round(trimmed.Average());
+        var json = JsonSerializer.Serialize(trimmed);
+        return (avg, json);
+    }
+
+    private static List<int> ParseRepsPerSet(string? json, int sets, int fallbackReps)
+    {
+        if (!string.IsNullOrWhiteSpace(json))
+        {
+            try
+            {
+                var list = JsonSerializer.Deserialize<List<int>>(json);
+                if (list is { Count: > 0 })
+                    return list;
+            }
+            catch { /* ignore malformed JSON */ }
+        }
+
+        return Enumerable.Repeat(fallbackReps > 0 ? fallbackReps : 1, Math.Max(sets, 1)).ToList();
+    }
+
+    private static int? EstimateCalories(ExerciseEntryEditViewModel model)
+    {
+        if (model.ExerciseType == "Cardio")
+        {
+            if (model.DurationMinutes is null or <= 0) return null;
+            // MET-based estimate for running/cycling (MET ≈ 8), assumed 75 kg user
+            var met = model.DistanceKm > 0 ? 8.5 : 6.0; // higher MET if distance recorded
+            return (int)Math.Round(met * 75 * (double)model.DurationMinutes.Value / 60);
+        }
+
+        // Strength: estimate based on sets × avg reps × weight
+        var sets = model.Sets;
+        var reps = model.RepsPerSetValues is { Count: > 0 }
+            ? (double)model.RepsPerSetValues.Average()
+            : 10.0;
+        var weightKg = (double)(model.WeightKg ?? 20m);
+        // ~0.35 cal per rep + 0.015 cal per kg per rep
+        var cal = sets * reps * (0.35 + weightKg * 0.015);
+        return cal > 0 ? (int)Math.Round(cal) : null;
     }
 }

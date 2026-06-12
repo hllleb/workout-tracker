@@ -28,6 +28,8 @@ services:
       ConnectionStrings__DefaultConnection: Server=db;Database=WorkoutTracker;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true;
       FatSecret__ClientId: ${FATSECRET_CLIENT_ID}
       FatSecret__ClientSecret: ${FATSECRET_CLIENT_SECRET}
+      SeedAdmin__Email: ${SEED_ADMIN_EMAIL}
+      SeedAdmin__Password: ${SEED_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     depends_on:

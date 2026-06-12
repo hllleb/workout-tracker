@@ -100,17 +100,23 @@ public class MealItemsController : Controller
             serving,
             HttpContext.RequestAborted);
 
+        // Quantity = number of servings (default 1); Unit = serving description (e.g. "1 slice (28g)")
+        // CaloriesPerUnit lets JS recalculate when user changes quantity.
         var model = new MealItemEditViewModel
         {
             MealId = meal.Id,
             ProductId = product.Id,
             Name = food.Name,
-            Quantity = serving.MetricServingAmount ?? 1,
-            Unit = serving.MetricServingUnit ?? serving.Description,
+            Quantity = 1,
+            Unit = serving.Description ?? serving.MetricServingUnit,
             Calories = serving.Calories ?? 0,
+            CaloriesPerUnit = serving.Calories ?? 0,
             ProteinG = serving.ProteinG,
+            ProteinPerUnit = serving.ProteinG,
             CarbsG = serving.CarbsG,
-            FatG = serving.FatG
+            CarbsPerUnit = serving.CarbsG,
+            FatG = serving.FatG,
+            FatPerUnit = serving.FatG
         };
 
         return View("Create", model);
