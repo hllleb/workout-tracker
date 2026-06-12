@@ -32,23 +32,55 @@ public class ExerciseEntry
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the number of sets performed.
+    /// Gets or sets the exercise type: Strength or Cardio.
+    /// </summary>
+    [StringLength(20)]
+    public string ExerciseType { get; set; } = "Strength";
+
+    /// <summary>
+    /// Gets or sets the number of sets performed (strength exercises).
     /// </summary>
     [Range(1, 50)]
     public int Sets { get; set; } = 1;
 
     /// <summary>
-    /// Gets or sets the number of repetitions per set.
+    /// Gets or sets the average number of repetitions per set.
     /// </summary>
-    [Range(1, 200)]
+    [Range(0, 200)]
     public int Reps { get; set; } = 1;
 
     /// <summary>
-    /// Gets or sets the weight used in kilograms.
+    /// Gets or sets per-set repetitions as a JSON array, e.g. [10,8,6].
+    /// </summary>
+    [StringLength(300)]
+    public string? RepsPerSet { get; set; }
+
+    /// <summary>
+    /// Gets or sets the weight used in kilograms (strength exercises).
     /// </summary>
     [Precision(6, 2)]
     [Range(0, 1000)]
     public decimal? WeightKg { get; set; }
+
+    /// <summary>
+    /// Gets or sets duration in minutes (cardio exercises).
+    /// </summary>
+    [Precision(6, 2)]
+    [Range(0, 1440)]
+    public decimal? DurationMinutes { get; set; }
+
+    /// <summary>
+    /// Gets or sets distance in kilometres (cardio exercises).
+    /// </summary>
+    [Precision(6, 2)]
+    [Range(0, 1000)]
+    public decimal? DistanceKm { get; set; }
+
+    /// <summary>
+    /// Gets or sets estimated calories burned for this entry.
+    /// </summary>
+    [Range(0, 10000)]
+    public int? CaloriesBurned { get; set; }
 
     /// <summary>
     /// Gets or sets optional notes for the exercise entry.

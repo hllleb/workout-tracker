@@ -1,0 +1,77 @@
+﻿@page
+@model EnableAuthenticatorModel
+@{
+    ViewData["Title"] = "Configure authenticator app";
+    ViewData["ActivePage"] = ManageNavPages.TwoFactorAuthentication;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<div class="page-header mb-3">
+    <div>
+        <h1 class="h3">@ViewData["Title"]</h1>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="panel manage-nav-panel">
+            <partial name="_ManageNav" />
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="auth-card">
+            <h2 class="auth-card-title">Set up authenticator</h2>
+            <p class="auth-card-subtitle">Follow the steps below to secure your account with two-factor authentication.</p>
+
+            <ol class="ps-3" style="line-height:2">
+                <li>
+                    <p class="mb-1">
+                        Download an authenticator app:
+                        <strong>Google Authenticator</strong>
+                        (<a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank">Android</a> /
+                        <a href="https://itunes.apple.com/us/app/google-authenticator/id388497605" target="_blank">iOS</a>)
+                        or <strong>Microsoft Authenticator</strong>
+                        (<a href="https://go.microsoft.com/fwlink/?Linkid=825072" target="_blank">Android</a> /
+                        <a href="https://go.microsoft.com/fwlink/?Linkid=825073" target="_blank">iOS</a>).
+                    </p>
+                </li>
+
+                <li>
+                    <p class="mb-2">Scan the QR code with the app or enter the key manually.</p>
+
+                    @if (!string.IsNullOrEmpty(Model.QrCodeDataUrl))
+                    {
+                        <div class="mb-3 p-3 d-inline-block" style="background:#fff;border:1px solid var(--app-border);border-radius:var(--app-radius)">
+                            <img src="@Model.QrCodeDataUrl" alt="QR code for two-factor authentication" width="200" height="200" />
+                        </div>
+                    }
+
+                    <p class="mb-1">Manual key:</p>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <code class="p-2" style="background:var(--app-surface-muted);border:1px solid var(--app-border);border-radius:8px;font-size:1.05rem;letter-spacing:.1em">@Model.SharedKey</code>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText('@Model.SharedKey')">Copy</button>
+                    </div>
+                    <p class="text-muted small">Spaces and casing do not matter.</p>
+                </li>
+
+                <li>
+                    <p class="mb-2">Enter the 6-digit code shown in the app to verify.</p>
+                    <form id="send-code" method="post" style="max-width:360px">
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Code" class="form-control" autocomplete="off" placeholder="123456" />
+                            <label asp-for="Input.Code" class="form-label">Verification code</label>
+                            <span asp-validation-for="Input.Code" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="w-100 btn btn-lg btn-primary">Verify and enable 2FA</button>
+                        <div asp-validation-summary="ModelOnly" class="text-danger mt-2" role="alert"></div>
+                    </form>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

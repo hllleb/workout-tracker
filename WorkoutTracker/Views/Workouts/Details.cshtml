@@ -1,37 +1,71 @@
 @model WorkoutTracker.Models.Workout
+@using System.Text.Json
+
+@functions {
+    static string BuildRepsDisplay(string? repsJson, int fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(repsJson))
+        {
+            try
+            {
+                var list = JsonSerializer.Deserialize<List<int>>(repsJson);
+                if (list is { Count: > 1 })
+                    return string.Join(" / ", list.Select(r => r.ToString()));
+                if (list is { Count: 1 })
+                    return list[0].ToString();
+            }
+            catch { }
+        }
+        return fallback.ToString();
+    }
+}
 
 @{
     ViewData["Title"] = "Workout details";
+    var totalCalories = Model.ExerciseEntries.Sum(e => e.CaloriesBurned ?? 0);
 }
 
-<h1>Workout details</h1>
-
-<div>
-    <dl class="row">
-        <dt class="col-sm-2">Name</dt>
-        <dd class="col-sm-10">@Model.Name</dd>
-        <dt class="col-sm-2">Date</dt>
-        <dd class="col-sm-10">@Model.WorkoutDate.ToString("yyyy-MM-dd")</dd>
-        <dt class="col-sm-2">Notes</dt>
-        <dd class="col-sm-10">@Model.Notes</dd>
-    </dl>
+<div class="page-header">
+    <div>
+        <h1>@Model.Name</h1>
+        <p>@Model.WorkoutDate.ToString("dddd, d MMMM yyyy")</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+        <a class="btn btn-outline-secondary" asp-action="Index">Back</a>
+    </div>
 </div>
 
-<div class="mt-4">
-    <h2>Exercises</h2>
-    <p>
-        <a class="btn btn-sm btn-primary" asp-controller="ExerciseEntries" asp-action="Create" asp-route-workoutId="@Model.Id">Add exercise</a>
-    </p>
+@if (!string.IsNullOrWhiteSpace(Model.Notes))
+{
+    <div class="panel mb-3">
+        <p class="mb-0 text-muted">@Model.Notes</p>
+    </div>
+}
 
-    @if (Model.ExerciseEntries.Count > 0)
-    {
-        <table class="table table-striped">
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h4 mb-0">Exercises</h2>
+    <div class="d-flex align-items-center gap-3">
+        @if (totalCalories > 0)
+        {
+            <span class="stat-pill" style="background:var(--app-primary-soft);color:var(--app-primary)">
+                🔥 ~@totalCalories kcal burned
+            </span>
+        }
+        <a class="btn btn-primary btn-sm" asp-controller="ExerciseEntries" asp-action="Create" asp-route-workoutId="@Model.Id">Add exercise</a>
+    </div>
+</div>
+
+@if (Model.ExerciseEntries.Count > 0)
+{
+    <div class="table-card">
+        <table class="table table-hover mb-0">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Sets</th>
-                    <th>Reps</th>
-                    <th>Weight</th>
+                    <th>Exercise</th>
+                    <th>Type</th>
+                    <th>Details</th>
+                    <th>Calories</th>
                     <th>Notes</th>
                     <th></th>
                 </tr>
@@ -40,27 +74,58 @@
             @foreach (var entry in Model.ExerciseEntries)
             {
                 <tr>
-                    <td>@entry.Name</td>
-                    <td>@entry.Sets</td>
-                    <td>@entry.Reps</td>
-                    <td>@(entry.WeightKg.HasValue ? $"{entry.WeightKg:0.##} kg" : "-")</td>
-                    <td>@entry.Notes</td>
+                    <td class="fw-semibold">@entry.Name</td>
                     <td>
-                        <a asp-controller="ExerciseEntries" asp-action="Edit" asp-route-id="@entry.Id">Edit</a> |
+                        @if (entry.ExerciseType == "Cardio")
+                        {
+                            <span class="badge" style="background:rgba(249,115,22,.15);color:#ea580c">Cardio</span>
+                        }
+                        else
+                        {
+                            <span class="badge" style="background:var(--app-primary-soft);color:var(--app-primary)">Strength</span>
+                        }
+                    </td>
+                    <td>
+                        @if (entry.ExerciseType == "Cardio")
+                        {
+                            if (entry.DurationMinutes.HasValue)
+                            {
+                                <span>@entry.DurationMinutes?.ToString("0.#") min</span>
+                            }
+                            if (entry.DistanceKm.HasValue)
+                            {
+                                <span class="text-muted ms-1">/ @entry.DistanceKm?.ToString("0.##") km</span>
+                            }
+                        }
+                        else
+                        {
+                            var repsDisplay2 = BuildRepsDisplay(entry.RepsPerSet, entry.Reps);
+                            var weightLabel2 = entry.WeightKg.HasValue ? $"@ {entry.WeightKg.Value.ToString("0.##")} kg" : string.Empty;
+                            <span>@entry.Sets × @repsDisplay2 reps @weightLabel2</span>
+                        }
+                    </td>
+                    <td>
+                        @if (entry.CaloriesBurned.HasValue)
+                        {
+                            <span>~@entry.CaloriesBurned kcal</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                    <td class="text-muted">@entry.Notes</td>
+                    <td class="table-actions text-end">
+                        <a asp-controller="ExerciseEntries" asp-action="Edit" asp-route-id="@entry.Id">Edit</a>
                         <a asp-controller="ExerciseEntries" asp-action="Delete" asp-route-id="@entry.Id">Delete</a>
                     </td>
                 </tr>
             }
             </tbody>
         </table>
-    }
-    else
-    {
-        <p class="text-muted">No exercises added yet.</p>
-    }
-</div>
-
-<div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to list</a>
-</div>
+    </div>
+}
+else
+{
+    <div class="empty-state">No exercises added yet.</div>
+}
