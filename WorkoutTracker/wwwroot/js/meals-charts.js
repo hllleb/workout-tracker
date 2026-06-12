@@ -18,8 +18,8 @@ function initMealsCharts(data) {
                 datasets: [{
                     label: 'Calories',
                     data: data.map((entry) => entry.calories),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(13, 148, 136, 0.65)',
+                    borderColor: 'rgba(13, 148, 136, 1)',
                     borderWidth: 1
                 }]
             },
@@ -45,17 +45,17 @@ function initMealsCharts(data) {
                     {
                         label: 'Protein (g)',
                         data: data.map((entry) => entry.proteinG),
-                        backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                        backgroundColor: 'rgba(249, 115, 22, 0.7)'
                     },
                     {
                         label: 'Carbs (g)',
                         data: data.map((entry) => entry.carbsG),
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                        backgroundColor: 'rgba(13, 148, 136, 0.65)'
                     },
                     {
                         label: 'Fat (g)',
                         data: data.map((entry) => entry.fatG),
-                        backgroundColor: 'rgba(255, 206, 86, 0.6)'
+                        backgroundColor: 'rgba(51, 65, 85, 0.65)'
                     }
                 ]
             },
