@@ -2,6 +2,8 @@
 
 An ASP.NET Core MVC application for tracking workouts and meals. The MVP focuses on workouts, exercises, meals, and products with Identity-based authentication and persistence in SQL Server.
 
+### Deployed application can be accessed at: https://workout-tracker-eragdqbsbkbmhdb3.germanywestcentral-01.azurewebsites.net/
+
 ## MVP Scope
 - Workouts and exercise entries with CRUD.
 - Meals with manual entries or optional product search from FatSecret.
