@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WorkoutTracker.Data;
 using WorkoutTracker.Models;
@@ -45,6 +46,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
@@ -55,7 +57,10 @@ app.MapRazorPages();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await dbContext.Database.MigrateAsync();
+    var migrationLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("DatabaseMigration");
+
+    await MigrateDatabaseWithRetryAsync(dbContext, migrationLogger);
 
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
         .CreateLogger("IdentitySeeder");
@@ -63,3 +68,40 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+static async Task MigrateDatabaseWithRetryAsync(
+    ApplicationDbContext dbContext,
+    ILogger logger,
+    int maxAttempts = 30)
+{
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+            return;
+        }
+        catch (SqlException ex) when (attempt < maxAttempts && IsTransientSqlError(ex))
+        {
+            var delay = TimeSpan.FromSeconds(Math.Min(attempt * 2, 10));
+            logger.LogWarning(
+                ex,
+                "Database not ready (attempt {Attempt}/{MaxAttempts}). Retrying in {DelaySeconds}s...",
+                attempt,
+                maxAttempts,
+                delay.TotalSeconds);
+            await Task.Delay(delay);
+        }
+    }
+}
+
+static bool IsTransientSqlError(SqlException ex)
+{
+    // Login failures mean a config/password mismatch and should fail fast.
+    if (ex.Number is 18456)
+    {
+        return false;
+    }
+
+    return ex.Number is -2 or 0 or 4060 or 40197 or 40501 or 49918 or 49919 or 49920;
+}

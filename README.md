@@ -79,6 +79,13 @@ docker compose up --build
 
 The app applies EF Core migrations on startup.
 
+If you see `Login failed for user 'sa'`, the SQL Server volume was likely created with a different password. Reset containers and the database volume, then start again:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
 ## Notes
 - XML documentation file generation is enabled.
 - Docker and unit tests are set up.
