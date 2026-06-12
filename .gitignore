@@ -52,6 +52,10 @@ secrets.json
 *.env
 .env
 
+## DocFX generated output
+docfx/api/
+docfx/_site/
+
 ## Project notes
 chat-snapshots.md
 plan-workoutTracker.prompt.md

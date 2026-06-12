@@ -18,13 +18,28 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
+    /// <summary>
+    /// Gets the workouts data set.
+    /// </summary>
     public DbSet<Workout> Workouts => Set<Workout>();
 
+    /// <summary>
+    /// Gets the exercise entries data set.
+    /// </summary>
     public DbSet<ExerciseEntry> ExerciseEntries => Set<ExerciseEntry>();
 
+    /// <summary>
+    /// Gets the meals data set.
+    /// </summary>
     public DbSet<Meal> Meals => Set<Meal>();
 
+    /// <summary>
+    /// Gets the meal items data set.
+    /// </summary>
     public DbSet<MealItem> MealItems => Set<MealItem>();
 
+    /// <summary>
+    /// Gets the cached products data set.
+    /// </summary>
     public DbSet<Product> Products => Set<Product>();
 }

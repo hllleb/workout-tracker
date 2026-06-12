@@ -86,6 +86,18 @@ docker compose down -v
 docker compose up --build
 ```
 
+## Documentation (DocFX)
+
+XML comments are enabled on public APIs. Generate the documentation site:
+
+```bash
+dotnet tool install -g docfx
+docfx metadata docfx/docfx.json
+docfx build docfx/docfx.json
+```
+
+Open `docfx/_site/index.html` in a browser.
+
 ## Notes
 - XML documentation file generation is enabled.
 - Docker and unit tests are set up.
@@ -99,7 +111,7 @@ docker compose up --build
 - Auth + roles: Identity with User/Admin; admin product management panel.
 - External API + JSON: FatSecret integration.
 - Validation + exception handling: DataAnnotations + domain services.
-- Documentation: XML docs enabled; DocFX planned.
+- Documentation: XML docs + DocFX site in `docfx/`.
 - Containerization: Docker.
 - Tests: unit tests in xUnit.
 - Cloud: optional deployment to Azure planned.

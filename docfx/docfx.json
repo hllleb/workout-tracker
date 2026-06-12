@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../WorkoutTracker",
+          "files": [ "**/*.csproj" ]
+        }
+      ],
+      "dest": "api",
+      "filter": "filter.yml",
+      "properties": {
+        "TargetFramework": "net8.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [ "api/**.yml", "api/index.md" ]
+      },
+      {
+        "files": [ "articles/**.md", "articles/**/toc.yml", "toc.yml", "*.md" ]
+      }
+    ],
+    "output": "_site",
+    "template": [ "default", "modern" ],
+    "globalMetadata": {
+      "_appName": "WorkoutTracker",
+      "_appTitle": "WorkoutTracker Documentation",
+      "_enableSearch": true
+    }
+  }
+}

@@ -1,0 +1,7 @@
+apiRules:
+- exclude:
+    uidRegex: ^WorkoutTracker\.Migrations
+    type: Namespace
+- exclude:
+    uidRegex: ^WorkoutTracker\.Migrations\.
+    type: Type
